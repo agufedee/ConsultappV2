@@ -1,0 +1,38 @@
+schema: spec-driven
+
+context: |
+  Tech stack: Laravel 13.26.1 + PHP 8.3 + Filament v5 + MySQL + Vite 8 + Tailwind CSS v4
+  Architecture: MVC with Filament admin panel, Eloquent ORM, service containers
+  Testing: Pest 5.1 (unit + feature suites), SQLite in-memory for tests, Pint for formatting
+  Style: Conventional commits, GitFlow branching, Pint-formatted PHP, 4-space indent
+  Domain: Nutrition clinic management (patients, consultations, meal plans, goals)
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+    - Reference consultapp_sdd.md for feature scope alignment
+  specs:
+    - Use Given/When/Then for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+    - Reference domain entities: Paciente, Consulta, PlanAlimentario, Objetivo
+  design:
+    - Follow Filament v5 conventions for Resources, RelationManagers, Widgets
+    - Document reactive form patterns for IMC calculation
+    - Include Filament panel configuration decisions
+  tasks:
+    - Group by GitFlow feature branch: feature/setup-filament, feature/database-schema, etc.
+    - Keep tasks completable in one session
+    - Map tasks to SPRINTS from consultapp_sdd.md
+  apply:
+    guidelines:
+      - Follow existing Filament and Laravel code patterns
+      - Use Pint formatting before commit
+      - Create factories and seeders for new models
+    tdd: true
+    test_command: "php artisan test --compact"
+  verify:
+    test_command: "php artisan test --compact"
+    build_command: "npm run build"
+    coverage_threshold: 0
+  archive:
+    - Warn before merging destructive deltas
