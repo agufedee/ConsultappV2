@@ -24,10 +24,10 @@ Chain strategy: size-exception
 
 ## Phase 1: Git Initialization
 
-- [ ] 1.1 Run `git init` in project root
-- [ ] 1.2 Stage all files: `git add .` and create initial commit: `git commit -m "chore: initial commit"`
-- [ ] 1.3 Create develop branch: `git checkout -b develop`
-- [ ] 1.4 Create feature branch: `git checkout -b feature/setup-filament`
+- [x] 1.1 Run `git init` in project root
+- [x] 1.2 Stage all files: `git add .` and create initial commit: `git commit -m "chore: initial commit"`
+- [x] 1.3 Create develop branch: `git checkout -b develop`
+- [x] 1.4 Create feature branch: `git checkout -b feature/setup-filament`
 
 **Commands:**
 ```bash
@@ -45,9 +45,9 @@ git checkout -b feature/setup-filament
 
 ## Phase 2: Filament Installation
 
-- [ ] 2.1 Install Filament: `composer require filament/filament:"^5.0"`
-- [ ] 2.2 Run database migration: `php artisan migrate --force`
-- [ ] 2.3 Install panel provider: `php artisan filament:install --panels`
+- [x] 2.1 Install Filament: `composer require filament/filament:"^5.0"`
+- [x] 2.2 Run database migration: `php artisan migrate --force`
+- [x] 2.3 Install panel provider: `php artisan filament:install --panels`
 
 **Commands:**
 ```bash
@@ -63,12 +63,12 @@ php artisan filament:install --panels
 
 ## Phase 3: Panel Configuration
 
-- [ ] 3.1 Rename provider: `mv app/Providers/Filament/AdminPanelProvider.php app/Providers/Filament/ConsultAppPanelProvider.php`
-- [ ] 3.2 Update class name inside file: `AdminPanelProvider` → `ConsultAppPanelProvider`
-- [ ] 3.3 Configure panel: set `->id('consultapp')`, `->path('consultapp')`, `->login()`, `->colors(['primary' => Color::Amber])`
-- [ ] 3.4 Update `bootstrap/providers.php`: import `ConsultAppPanelProvider` and register it
-- [ ] 3.5 Update `config/app.php`: change locale default from `'en'` to `'es'`
-- [ ] 3.6 Update `.env`: change `APP_LOCALE=en` to `APP_LOCALE=es`
+- [x] 3.1 Rename provider: `mv app/Providers/Filament/AdminPanelProvider.php app/Providers/Filament/ConsultAppPanelProvider.php`
+- [x] 3.2 Update class name inside file: `AdminPanelProvider` → `ConsultAppPanelProvider`
+- [x] 3.3 Configure panel: set `->id('consultapp')`, `->path('consultapp')`, `->login()`, `->colors(['primary' => Color::Amber])`
+- [x] 3.4 Update `bootstrap/providers.php`: import `ConsultAppPanelProvider` and register it
+- [x] 3.5 Update `config/app.php`: change locale default from `'en'` to `'es'`
+- [x] 3.6 Update `.env`: change `APP_LOCALE=en` to `APP_LOCALE=es`
 
 **Files:**
 - `app/Providers/Filament/ConsultAppPanelProvider.php` (renamed + modified)
@@ -82,7 +82,7 @@ php artisan filament:install --panels
 
 ## Phase 4: User Seeding
 
-- [ ] 4.1 Create admin user: `php artisan make:filament-user --panel=consultapp`
+- [x] 4.1 Create admin user: `php artisan make:filament-user --panel=consultapp`
 
 **Commands:**
 ```bash
@@ -97,11 +97,11 @@ php artisan make:filament-user --panel=consultapp
 
 ## Phase 5: Testing
 
-- [ ] 5.1 Create test file `tests/Feature/ConsultappPanelTest.php` with three Pest tests:
+- [x] 5.1 Create test file `tests/Feature/ConsultappPanelTest.php` with three Pest tests:
   - Unauthenticated redirect (GET /consultapp → 302 to /consultapp/login)
   - Login page renders (GET /consultapp/login → 200 + Livewire component)
   - Authenticated dashboard access (actingAs → GET /consultapp → 200)
-- [ ] 5.2 Run tests: `php artisan test --compact --filter=ConsultappPanel`
+- [x] 5.2 Run tests: `php artisan test --compact --filter=ConsultappPanel`
 
 **Files:** `tests/Feature/ConsultappPanelTest.php` (new, ~35 lines)
 **Estimated lines:** ~35
@@ -110,11 +110,11 @@ php artisan make:filament-user --panel=consultapp
 
 ## Phase 6: Code Quality & Commit
 
-- [ ] 6.1 Run Pint: `vendor/bin/pint --dirty --format agent`
-- [ ] 6.2 Verify no dirty files: `vendor/bin/pint --dirty --test`
-- [ ] 6.3 Stage all changes: `git add .`
-- [ ] 6.4 Commit: `git commit -m "feat: install filament v5 panel with consultapp config"`
-- [ ] 6.5 Merge to develop: `git checkout develop && git merge --no-ff feature/setup-filament`
+- [x] 6.1 Run Pint: `vendor/bin/pint --dirty --format agent`
+- [x] 6.2 Verify no dirty files: `vendor/bin/pint --dirty --test`
+- [x] 6.3 Stage all changes: `git add .`
+- [x] 6.4 Commit: `git commit -m "feat: install filament v5 panel with consultapp config"`
+- [x] 6.5 Merge to develop: `git checkout develop && git merge --no-ff feature/setup-filament`
 
 **Commands:**
 ```bash

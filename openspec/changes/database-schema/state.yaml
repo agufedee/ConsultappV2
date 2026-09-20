@@ -1,0 +1,18 @@
+change: database-schema
+status: spec-complete
+phases:
+  explore: skipped
+  propose: complete
+  spec: complete
+  design: pending
+  tasks: pending
+  apply: pending
+  verify: pending
+  archive: pending
+artifacts:
+  proposal: openspec/changes/database-schema/proposal.md
+  specs:
+    - openspec/changes/database-schema/specs/database-migrations/spec.md
+    - openspec/changes/database-schema/specs/domain-models/spec.md
+    - openspec/changes/database-schema/specs/test-factories/spec.md
+delivery_strategy: ask-on-risk
