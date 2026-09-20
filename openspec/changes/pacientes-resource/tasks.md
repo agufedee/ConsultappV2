@@ -47,18 +47,18 @@ Chain strategy: pending
 
 ## Phase 5: Form Schema (RED→GREEN)
 
-- [ ] 5.1 RED — append tests: create OK (`fillForm()->call('create')->assertHasNoFormErrors()` + DB row); missing nombre → `['nombre'=>'required']`; duplicate DNI → `['dni'=>'unique']`; empty DNI persists null; same-DNI edit OK; foreign-DNI edit blocked. Run → failing.
-- [ ] 5.2 GREEN — `form()` in `Section::columns(2)`: nombre/apellido required maxLength(100); dni `nullable()->unique()->maxLength(20)` (never `withoutTrashed`/`scopedUnique`); DatePicker fecha_nacimiento; Select sexo (masculino/femenino/otro); telefono maxLength(50); email email() maxLength(100); Textarea antecedentes; DatePicker fecha_alta. Filtered → passing.
+- [x] 5.1 RED — append tests: create OK (`fillForm()->call('create')->assertHasNoFormErrors()` + DB row); missing nombre → `['nombre'=>'required']`; duplicate DNI → `['dni'=>'unique']`; empty DNI persists null; same-DNI edit OK; foreign-DNI edit blocked. Run → failing. Confirmed RED: 10 tests, 5 failed (3 errors apellido/fecha_alta NOT NULL + 2 assertion fails).
+- [x] 5.2 GREEN — `form()` in `Section::columns(2)`: nombre/apellido required maxLength(100); dni `nullable()->unique()->maxLength(20)` (never `withoutTrashed`/`scopedUnique`); DatePicker fecha_nacimiento; Select sexo (masculino/femenino/otro); telefono maxLength(50); email email() maxLength(100); Textarea antecedentes; DatePicker fecha_alta. Filtered → passing. Confirmed GREEN: 10/10 pass (36 assertions). NOTE: `Filament\Schemas\Components\Section` (v5 namespace, not Forms\Components); `fecha_alta` needs `->default(now())` — Eloquent always writes the column so the DB CURRENT_DATE default never fires for form creates.
 
 ## Phase 6: Infolist + Labels (RED→GREEN)
 
-- [ ] 6.1 RED — add tests: View shows `edad` 30; heading "Pacientes". Run → failing.
-- [ ] 6.2 GREEN — `infolist()`: Section 'Datos personales' + TextEntries (nombre/apellido/dni/sexo/fecha_nacimiento->date('d/m/Y')/edad `->placeholder('—')`/telefono/email/antecedentes columnSpanFull/fecha_alta); `$modelLabel='Paciente'`, `$pluralModelLabel='Pacientes'`, `$navigationIcon='heroicon-o-user-group'`. Filtered → passing.
+- [x] 6.1 RED — add tests: View shows `edad` 30; heading "Pacientes". Run → failing. Confirmed RED: `assertSee('30')` was a FALSE GREEN (page layout matches '30') — replaced with `assertSeeInOrder(['Edad','30'])` → genuine RED ("Edad" missing). Heading test soft-RED (default plural label already "Pacientes").
+- [x] 6.2 GREEN — `infolist()`: Section 'Datos personales' + TextEntries (nombre/apellido/dni/sexo/fecha_nacimiento->date('d/m/Y')/edad `->placeholder('—')`/telefono/email/antecedentes columnSpanFull/fecha_alta); `$modelLabel='Paciente'`, `$pluralModelLabel='Pacientes'`, `$navigationIcon='heroicon-o-user-group'` (Heroicon::OutlinedUserGroup). Filtered → passing. Confirmed GREEN: 13/13 pass (42 assertions), incl. placeholder triangulation (birth date null → '—').
 
 ## Phase 7: Resource Test Completion
 
-- [ ] 7.1 Append soft-delete cases: delete hides row (`assertDontSeeTableRecords`); deleted DNI blocked; search excludes deleted. Full suite → green.
+- [x] 7.1 Append soft-delete cases: delete hides row (`assertCanNotSeeTableRecords` — v5 name; task listed the v3-era `assertDontSeeTableRecords`); deleted DNI blocked; search excludes deleted. Full suite → green. Confirmed: 16/16 filtered (51 assertions); deleted-DNI test locks the raw `Rule::unique` behavior (no withoutTrashed/scopedUnique).
 
 ## Phase 8: Final Verification
 
-- [ ] 8.1 `vendor/bin/pint --dirty --format agent`; `php artisan test --compact`; `php artisan migrate:fresh`. Done: green + clean.
+- [x] 8.1 `vendor/bin/pint --dirty --format agent`; `php artisan test --compact`; `php artisan migrate:fresh`. Done: pint clean, full suite 43/43 green (105 assertions), schema builds fresh including soft-deletes migration.
