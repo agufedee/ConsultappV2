@@ -43,7 +43,7 @@ Chain strategy: pending
 ## Phase 4: Table + Global Search (RED→GREEN)
 
 - [x] 4.1 RED — `php artisan make:test --pest Filament/PacienteResourceTest`; `uses(RefreshDatabase)`, `it()` per ConsultappPanelTest, Livewire;: list renders; `searchTable('María'|'González'|'30123456')` show/hide. Run `--filter=PacienteResourceTest` → failing. Confirmed RED: 4 tests, 2 fail (apellido/dni search). NOTE: `pest-plugin-livewire` not installed → used `Livewire::test()` (design's stated pattern).
-- [ ] 4.2 GREEN — `table()`: nombre/apellido searchable+sortable, dni searchable, sexo+fecha_alta->date('d/m/Y') toggleable, `defaultSort('apellido')`; `getGloballySearchableAttributes(): ['nombre','apellido','dni']`. Filtered → passing.
+- [x] 4.2 GREEN — `table()`: nombre/apellido searchable+sortable, dni searchable, sexo+fecha_alta->date('d/m/Y') toggleable, `defaultSort('apellido')`; `getGloballySearchableAttributes(): ['nombre','apellido','dni']`. Filtered → passing. Confirmed GREEN: 4/4 pass (9 assertions). Also removed generator auto-detected trashed UI (TrashedFilter, ForceDelete/Restore bulk + edit-page actions, route-binding override) per design's out-of-scope ruling.
 
 ## Phase 5: Form Schema (RED→GREEN)
 
