@@ -12,8 +12,12 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Section;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -37,9 +41,35 @@ class PacienteResource extends Resource
     {
         return $schema
             ->components([
-                TextInput::make('nombre')
-                    ->required()
-                    ->maxLength(255),
+                Section::make()
+                    ->columns(2)
+                    ->schema([
+                        TextInput::make('nombre')
+                            ->required()
+                            ->maxLength(100),
+                        TextInput::make('apellido')
+                            ->required()
+                            ->maxLength(100),
+                        TextInput::make('dni')
+                            ->nullable()
+                            ->unique()
+                            ->maxLength(20),
+                        DatePicker::make('fecha_nacimiento'),
+                        Select::make('sexo')
+                            ->options([
+                                'masculino' => 'Masculino',
+                                'femenino' => 'Femenino',
+                                'otro' => 'Otro',
+                            ]),
+                        TextInput::make('telefono')
+                            ->maxLength(50),
+                        TextInput::make('email')
+                            ->email()
+                            ->maxLength(100),
+                        Textarea::make('antecedentes'),
+                        DatePicker::make('fecha_alta')
+                            ->default(now()),
+                    ]),
             ]);
     }
 
