@@ -193,3 +193,46 @@ it('shows the plural model heading on the list page', function () {
         ->assertOk()
         ->assertSee('Pacientes');
 });
+
+it('hides a soft-deleted paciente from the list', function () {
+    $paciente = Paciente::factory()->create();
+
+    Livewire::test(ListPacientes::class)
+        ->assertCanSeeTableRecords([$paciente]);
+
+    $paciente->delete();
+
+    Livewire::test(ListPacientes::class)
+        ->assertCanNotSeeTableRecords([$paciente]);
+});
+
+it('rejects a dni from a deleted paciente on create', function () {
+    $deleted = Paciente::factory()->create(['dni' => '30123456']);
+    $deleted->delete();
+
+    Livewire::test(CreatePaciente::class)
+        ->fillForm([
+            'nombre' => 'Ana',
+            'apellido' => 'López',
+            'dni' => '30123456',
+        ])
+        ->call('create')
+        ->assertHasFormErrors(['dni' => 'unique']);
+});
+
+it('excludes soft-deleted pacientes from search', function () {
+    $active = Paciente::factory()->create([
+        'nombre' => 'María',
+        'apellido' => 'González',
+    ]);
+    $deleted = Paciente::factory()->create([
+        'nombre' => 'María',
+        'apellido' => 'Pérez',
+    ]);
+    $deleted->delete();
+
+    Livewire::test(ListPacientes::class)
+        ->searchTable('María')
+        ->assertCanSeeTableRecords([$active])
+        ->assertCanNotSeeTableRecords([$deleted]);
+});
