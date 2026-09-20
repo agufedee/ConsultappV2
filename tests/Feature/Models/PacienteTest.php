@@ -48,15 +48,55 @@ test('paciente has many objetivos', function () {
     expect($paciente->objetivos)->toHaveCount(2);
 });
 
-test('cascade delete removes consultas and objetivos', function () {
+test('delete soft-deletes the paciente keeping related records', function () {
     $paciente = Paciente::factory()->create();
     Consulta::factory()->count(2)->forPaciente()->create(['paciente_id' => $paciente->id]);
     Objetivo::factory()->count(2)->forPaciente()->create(['paciente_id' => $paciente->id]);
 
     $paciente->delete();
 
-    expect(Consulta::where('paciente_id', $paciente->id)->count())->toBe(0);
-    expect(Objetivo::where('paciente_id', $paciente->id)->count())->toBe(0);
+    expect($paciente->trashed())->toBeTrue();
+    expect($paciente->deleted_at)->not->toBeNull();
+    expect(Paciente::find($paciente->id))->toBeNull();
+    expect(Paciente::withTrashed()->find($paciente->id)->id)->toBe($paciente->id);
+    expect(Consulta::where('paciente_id', $paciente->id)->count())->toBe(2);
+    expect(Objetivo::where('paciente_id', $paciente->id)->count())->toBe(2);
+});
+
+test('restore brings a soft-deleted paciente back to default queries', function () {
+    $paciente = Paciente::factory()->create();
+
+    $paciente->delete();
+    $paciente->restore();
+
+    expect($paciente->trashed())->toBeFalse();
+    expect(Paciente::find($paciente->id)->id)->toBe($paciente->id);
+});
+
+test('edad accessor returns full years since birth', function () {
+    $paciente = Paciente::factory()->create([
+        'fecha_nacimiento' => now()->subYears(30)->toDateString(),
+    ]);
+
+    expect($paciente->edad)->toBe(30);
+});
+
+test('edad accessor is null without fecha_nacimiento', function () {
+    $paciente = Paciente::factory()->create(['fecha_nacimiento' => null]);
+
+    expect($paciente->edad)->toBeNull();
+});
+
+test('edad accessor counts complete years only', function () {
+    $beforeAnniversary = Paciente::factory()->create([
+        'fecha_nacimiento' => now()->subYears(30)->addDay()->toDateString(),
+    ]);
+    $afterAnniversary = Paciente::factory()->create([
+        'fecha_nacimiento' => now()->subYears(30)->subDay()->toDateString(),
+    ]);
+
+    expect($beforeAnniversary->edad)->toBe(29);
+    expect($afterAnniversary->edad)->toBe(30);
 });
 
 test('factory overrides work', function () {

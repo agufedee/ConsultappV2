@@ -30,13 +30,13 @@ test('consulta has one plan alimentario', function () {
     expect($consulta->planAlimentario)->toBeInstanceOf(PlanAlimentario::class);
 });
 
-test('cascade delete via paciente', function () {
+test('soft delete preserves consultas', function () {
     $paciente = Paciente::factory()->create();
     Consulta::factory()->count(2)->forPaciente()->create(['paciente_id' => $paciente->id]);
 
     $paciente->delete();
 
-    expect(Consulta::where('paciente_id', $paciente->id)->count())->toBe(0);
+    expect(Consulta::where('paciente_id', $paciente->id)->count())->toBe(2);
 });
 
 test('imc is stored as float', function () {
