@@ -28,13 +28,13 @@ Chain strategy: pending
 
 ## Phase 1: Housekeeping
 
-- [ ] 1.1 Add `.codegraph/` to `.gitignore` (`chore`). Done: `git status` clean.
+- [x] 1.1 Add `.codegraph/` to `.gitignore` (`chore`). Done: `git status` clean.
 
 ## Phase 2: Domain Foundation (RED→GREEN)
 
-- [ ] 2.1 RED — append `tests/Feature/Models/PacienteTest.php`: `edad`=30 (birth 30y ago); `edad` null when no `fecha_nacimiento`; `delete()` keeps row (`deleted_at` set), consultas/objetivos intact. `--filter=PacienteTest` → fails.
-- [ ] 2.2 Create `database/migrations/2026_09_20_000001_add_soft_deletes_to_pacientes.php`: `softDeletes()` + `$table->index('deleted_at')`; `down()` drops index then column. Hook: `migrate:fresh`/`migrate:rollback --step=1`.
-- [ ] 2.3 GREEN — `app/Models/Paciente.php`: `use SoftDeletes;` + `getEdadAttribute(): ?int` (`$this->fecha_nacimiento?->age`). Filtered → passing.
+- [x] 2.1 RED — append `tests/Feature/Models/PacienteTest.php`: `edad`=30 (birth 30y ago); `edad` null when no `fecha_nacimiento`; `delete()` keeps row (`deleted_at` set), consultas/objetivos intact. `--filter=PacienteTest` → fails.
+- [x] 2.2 Create `database/migrations/2026_09_20_000001_add_soft_deletes_to_pacientes.php`: `softDeletes()` + `$table->index('deleted_at')`; `down()` drops index then column. Hook: `migrate:fresh`/`migrate:rollback --step=1`.
+- [x] 2.3 GREEN — `app/Models/Paciente.php`: `use SoftDeletes;` + `getEdadAttribute(): ?int` (`$this->fecha_nacimiento?->age`). Filtered → passing.
 
 ## Phase 3: Resource Generation
 
