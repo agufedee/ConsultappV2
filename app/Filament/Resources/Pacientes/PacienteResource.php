@@ -28,7 +28,11 @@ class PacienteResource extends Resource
 {
     protected static ?string $model = Paciente::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
+
+    protected static ?string $modelLabel = 'Paciente';
+
+    protected static ?string $pluralModelLabel = 'Pacientes';
 
     protected static ?string $recordTitleAttribute = 'nombre';
 
@@ -77,7 +81,23 @@ class PacienteResource extends Resource
     {
         return $schema
             ->components([
-                TextEntry::make('nombre'),
+                Section::make('Datos personales')
+                    ->schema([
+                        TextEntry::make('nombre'),
+                        TextEntry::make('apellido'),
+                        TextEntry::make('dni'),
+                        TextEntry::make('sexo'),
+                        TextEntry::make('fecha_nacimiento')
+                            ->date('d/m/Y'),
+                        TextEntry::make('edad')
+                            ->placeholder('—'),
+                        TextEntry::make('telefono'),
+                        TextEntry::make('email'),
+                        TextEntry::make('antecedentes')
+                            ->columnSpanFull(),
+                        TextEntry::make('fecha_alta')
+                            ->date('d/m/Y'),
+                    ]),
             ]);
     }
 

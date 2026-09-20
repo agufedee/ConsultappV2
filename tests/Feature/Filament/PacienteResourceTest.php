@@ -3,6 +3,7 @@
 use App\Filament\Resources\Pacientes\Pages\CreatePaciente;
 use App\Filament\Resources\Pacientes\Pages\EditPaciente;
 use App\Filament\Resources\Pacientes\Pages\ListPacientes;
+use App\Filament\Resources\Pacientes\Pages\ViewPaciente;
 use App\Models\Paciente;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -167,4 +168,28 @@ it('rejects assigning another pacientes dni on edit', function () {
         ->fillForm(['dni' => '30123457'])
         ->call('save')
         ->assertHasFormErrors(['dni' => 'unique']);
+});
+
+it('shows the computed age on the view page', function () {
+    $paciente = Paciente::factory()->create([
+        'fecha_nacimiento' => now()->subYears(30),
+    ]);
+
+    Livewire::test(ViewPaciente::class, ['record' => $paciente->getRouteKey()])
+        ->assertOk()
+        ->assertSeeInOrder(['Edad', '30']);
+});
+
+it('shows a placeholder for age when birth date is missing', function () {
+    $paciente = Paciente::factory()->create(['fecha_nacimiento' => null]);
+
+    Livewire::test(ViewPaciente::class, ['record' => $paciente->getRouteKey()])
+        ->assertOk()
+        ->assertSeeInOrder(['Edad', '—']);
+});
+
+it('shows the plural model heading on the list page', function () {
+    Livewire::test(ListPacientes::class)
+        ->assertOk()
+        ->assertSee('Pacientes');
 });
