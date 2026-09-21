@@ -22,11 +22,11 @@ test('objetivo belongs to paciente', function () {
     expect($objetivo->paciente_id)->toBe($objetivo->paciente->id);
 });
 
-test('cascade delete via paciente', function () {
+test('soft delete preserves objetivos', function () {
     $paciente = Paciente::factory()->create();
     Objetivo::factory()->count(2)->forPaciente()->create(['paciente_id' => $paciente->id]);
 
     $paciente->delete();
 
-    expect(Objetivo::where('paciente_id', $paciente->id)->count())->toBe(0);
+    expect(Objetivo::where('paciente_id', $paciente->id)->count())->toBe(2);
 });
