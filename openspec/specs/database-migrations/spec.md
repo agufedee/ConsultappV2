@@ -38,11 +38,12 @@ The system SHALL create a `consultas` table with: `id` (bigint unsigned, PK), `p
 - WHEN `php artisan migrate:fresh` runs
 - THEN the `consultas` table exists with all 15 columns plus timestamps
 
-#### Scenario: FK cascade on paciente delete
+#### Scenario: Soft delete preserves consultas
 
 - GIVEN a paciente with 3 consultas
-- WHEN the paciente is deleted
-- THEN all 3 consultas are automatically deleted (cascade)
+- WHEN the paciente is soft-deleted through the application
+- THEN all 3 consultas remain in the database
+- AND the FK ON DELETE CASCADE clause is unchanged at the database level
 
 #### Scenario: motivo enum values stored as strings
 
@@ -78,11 +79,34 @@ The system SHALL create a `objetivos` table with: `id` (bigint unsigned, PK), `p
 - WHEN an objetivo is inserted without specifying estado
 - THEN estado is set to 'activo'
 
-#### Scenario: FK cascade on paciente delete
+#### Scenario: Soft delete preserves objetivos
 
 - GIVEN a paciente with 2 objetivos
-- WHEN the paciente is deleted
-- THEN both objetivos are automatically deleted
+- WHEN the paciente is soft-deleted through the application
+- THEN both objetivos remain in the database
+- AND the FK ON DELETE CASCADE clause is unchanged at the database level
+
+### Requirement: Add Soft Deletes to Pacientes Migration
+
+The system MUST provide an additive migration `add_soft_deletes_to_pacientes` adding a nullable timestamp column `deleted_at` to `pacientes` and a database index on `deleted_at`. The migration MUST NOT alter any other column, constraint, foreign key, or table. Rollback MUST drop only `deleted_at` and its index.
+
+#### Scenario: Migration adds deleted_at and index
+
+- GIVEN the pacientes table exists without deleted_at
+- WHEN `php artisan migrate` runs
+- THEN `deleted_at` (nullable timestamp) and its index are added
+
+#### Scenario: Existing rows become active
+
+- GIVEN pacientes rows exist before the migration
+- WHEN the migration runs
+- THEN every existing row has `deleted_at` NULL
+
+#### Scenario: Rollback is non-destructive
+
+- GIVEN the migration has run
+- WHEN `php artisan migrate:rollback` runs
+- THEN only `deleted_at` and its index are removed; patient data is untouched
 
 ### Requirement: Migration Ordering
 
@@ -101,5 +125,5 @@ The system SHALL create migrations in dependency order: `pacientes` and `objetiv
 |------|-------------------|
 | SQLite does not support native ENUM | All enum columns use varchar/string storage with PHP cast |
 | Duplicate DNI on insert | Database rejects with unique constraint violation |
-| Delete paciente with consultas and objetivos | Cascade removes all related rows in one operation |
+| Delete paciente with consultas and objetivos | Soft delete sets `deleted_at`; rows remain in the database; the FK ON DELETE CASCADE clause is unchanged at the database level |
 | NULL optional fields | All nullable columns accept NULL without error |
