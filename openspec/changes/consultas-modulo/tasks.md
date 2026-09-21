@@ -9,7 +9,7 @@ Sprint 2. Branch: `feature/consultas-modulo`. TDD on.
 | Estimated changed lines | ~553 + ~35 test ≈ 590 |
 | 400-line budget risk | High |
 | Chained PRs recommended | Yes |
-| Suggested split | PR 1 (resource ≈435) → PR 2 (RM ≈153) |
+| Suggested split | PR 1 (migration ≈40) → PR 2 (resource+form ≈496 w/ tests) → PR 3 (RM ≈230 w/ tests) |
 | Delivery strategy | ask-on-risk |
 | Chain strategy | feature-branch-chain |
 
@@ -18,14 +18,15 @@ Chained PRs recommended: Yes
 Chain strategy: feature-branch-chain
 400-line budget risk: High
 
-### Suggested Work Units (PR1=tracker; PR2=PR1)
+### Suggested Work Units (PR3=PR2=PR1 → feature-branch-chain)
 
 | Unit | Goal | Likely PR | Focused test command | Runtime harness | Rollback boundary |
 |------|------|-----------|----------------------|-----------------|-------------------|
-| 1 | Migration + ConsultaResource + Pages + tests | PR 1 | `php artisan test --compact --filter='WidenImcMigrationTest\|ConsultaResourceTest'` | migrate:fresh; rollback --step=1 | Revert migration; delete Consultas/ |
-| 2 | RM + PacienteResource::getRelations + test | PR 2 | `php artisan test --compact --filter=ConsultasRelationManagerTest` | /consultapp/pacientes/{id} tab; modal | Delete RM file; revert getRelations() |
+| 1 | Widen imc migration + test | PR 1 | `php artisan test --compact --filter=WidenImcMigrationTest` | migrate:fresh; rollback --step=1 | Revert migration |
+| 2 | ConsultaResource + Pages + tests | PR 2 | `php artisan test --compact --filter=ConsultaResourceTest` | /consultapp/consultas CRUD | Revert migration; delete Consultas/ |
+| 3 | RM + PacienteResource::getRelations + test | PR 3 | `php artisan test --compact --filter=ConsultasRelationManagerTest` | /consultapp/pacientes/{id} tab; modal | Delete RM file; revert getRelations() |
 
-Commits: S1 `feat(migrations): widen imc` + `feat(consultas): add ConsultaResource`; S2 `feat(consultas): mount ConsultasRelationManager`.
+Commits: S1 `feat(migrations): widen imc` + `feat(consultas): add ConsultaResource`; S2 `feat(consultas): mount ConsultasRelationManager` + `chore(sdd): mark consultas-modulo slice 2 tasks complete`.
 
 ## Phase 1: Migration (RED→GREEN)
 
@@ -46,10 +47,10 @@ Commits: S1 `feat(migrations): widen imc` + `feat(consultas): add ConsultaResour
 
 ## Phase 4: RM Integration (RED→GREEN)
 
-- [ ] 4.1 RED — `make:test --pest Filament/ConsultasRelationManagerTest`: `Livewire::test(RM::class, ['ownerRecord'=>$paciente,'pageClass'=>ViewPaciente::class])` → assertOk; only owner's rows (assertCanSee/assertDontSee); create `callAction(TestAction::make(CreateAction::class)->table(), [...])` → `assertDatabaseHas('consultas',['paciente_id'=>$paciente->id])`. → fails.
-- [ ] 4.2 GREEN — `Pacientes/RelationManagers/ConsultasRelationManager.php`: `$relationship='consultas'`; `$relatedResource=ConsultaResource::class` (delegated); `table()` = `ConsultaResource::table($table)->headerActions([CreateAction::make()])`; `getDefaultActionUrl(): ?string { return null; }` (modal create/edit/view); `getBadge()` count.
-- [ ] 4.3 GREEN — `PacienteResource::getRelations()` → `[ConsultasRelationManager::class]` (+3, only existing-code touch). Untouched: PacienteResourceTest + model/panel tests. → green.
+- [x] 4.1 RED — `make:test --pest Filament/ConsultasRelationManagerTest`: `Livewire::test(RM::class, ['ownerRecord'=>$paciente,'pageClass'=>ViewPaciente::class])` → assertOk; only owner's rows (assertCanSee/assertDontSee); create `callAction(TestAction::make(CreateAction::class)->table(), [...])` → `assertDatabaseHas('consultas',['paciente_id'=>$paciente->id])`. → fails.
+- [x] 4.2 GREEN — `Pacientes/RelationManagers/ConsultasRelationManager.php`: `$relationship='consultas'`; `$relatedResource=ConsultaResource::class` (delegated); `table()` = `ConsultaResource::table($table)->headerActions([CreateAction::make()])`; `getDefaultActionUrl(): ?string { return null; }` (modal create/edit/view); `getBadge()` count. NOTE (apply): v5 Panel DEFAULT `hasReadOnlyRelationManagersOnResourceViewPagesByDefault=true` hides create/edit on View pages → override `isReadOnly(): bool { return false; }` on the RM (scoped; panel untouched).
+- [x] 4.3 GREEN — `PacienteResource::getRelations()` → `[ConsultasRelationManager::class]` (+3, only existing-code touch). Untouched: PacienteResourceTest + model/panel tests. → green.
 
 ## Phase 5: Verification
 
-- [ ] 5.1 Pint `--dirty --format agent`; `php artisan test --compact`; `migrate:fresh` clean.
+- [x] 5.1 Pint `--dirty --format agent`; `php artisan test --compact`; `migrate:fresh` clean. NOTE (apply): full suite 71 passed / 219 assertions; `migrate:fresh` skipped — SQLite `:memory:` test harness already migrates per test; dev DB seeded data untouched.
