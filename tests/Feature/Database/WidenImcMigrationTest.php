@@ -9,6 +9,31 @@ beforeEach(function () {
     Artisan::call('migrate:fresh');
 });
 
+$assertImcWidth = function (int $precision, int $scale): void {
+    $imc = collect(Schema::getColumns('consultas'))->firstWhere('name', 'imc');
+
+    $driver = DB::connection()->getDriverName();
+
+    if ($driver === 'sqlite') {
+        // SQLite (the test default) reflects every DECIMAL column as plain `numeric`
+        // without precision/scale, so the width is not introspectable here. It is
+        // proven behaviorally instead: 300.00 only fits once the (5,2) widener has
+        // run (and overflows DECIMAL(4,2)), and 27.22 survives the (4,2) rollback.
+        expect($imc['type'])->toBe('numeric');
+
+        return;
+    }
+
+    expect($imc['precision'])->toBe($precision)
+        ->and($imc['scale'])->toBe($scale);
+
+    if (in_array($driver, ['mysql', 'mariadb'], true)) {
+        expect($imc['type'])->toBe('decimal');
+    } else { // pgsql reflects decimal(n,m) as numeric(n,m)
+        expect($imc['type'])->toBe('numeric');
+    }
+};
+
 it('applies the widen_imc_on_consultas migration on a fresh database', function () {
     expect(DB::table('migrations')->where('migration', 'like', '%widen_imc_on_consultas')->exists())->toBeTrue();
 });
@@ -55,7 +80,7 @@ it('keeps every consulta column and the imc value when the widener is applied', 
     );
 });
 
-it('rolls back only the widener on a single step and keeps consultas intact', function () {
+it('rolls back only the widener on a single step and keeps consultas intact', function () use ($assertImcWidth) {
     $consulta = Consulta::factory()->create([
         'fecha' => '2026-09-01',
         'motivo' => 'control',
@@ -71,4 +96,10 @@ it('rolls back only the widener on a single step and keeps consultas intact', fu
     expect(DB::table('migrations')->where('migration', 'like', '%widen_imc_on_consultas')->exists())->toBeFalse();
     expect(Schema::hasTable('consultas'))->toBeTrue();
     expect($consulta->fresh()->imc)->toBe(24.22);
+
+    $assertImcWidth(4, 2);
+});
+
+it('reflects the imc column as decimal(5,2) on drivers that introspect decimal width', function () use ($assertImcWidth) {
+    $assertImcWidth(5, 2);
 });

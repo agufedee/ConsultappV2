@@ -6,6 +6,7 @@ use App\Filament\Resources\Pacientes\Pages\CreatePaciente;
 use App\Filament\Resources\Pacientes\Pages\EditPaciente;
 use App\Filament\Resources\Pacientes\Pages\ListPacientes;
 use App\Filament\Resources\Pacientes\Pages\ViewPaciente;
+use App\Filament\Resources\Pacientes\RelationManagers\ConsultasRelationManager;
 use App\Models\Paciente;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -17,8 +18,8 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
-use Filament\Schemas\Components\Section;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -136,7 +137,7 @@ class PacienteResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            ConsultasRelationManager::class,
         ];
     }
 
