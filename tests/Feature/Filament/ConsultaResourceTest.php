@@ -198,3 +198,23 @@ it('persists an emptied pliegues state as null', function () {
 it('does not register navigation for the resource', function () {
     expect(ConsultaResource::shouldRegisterNavigation())->toBeFalse();
 });
+
+it('exposes the three motivo options with Spanish labels', function () {
+    Livewire::test(CreateConsulta::class)
+        ->assertOk()
+        ->assertSee('Primera consulta', escape: false)
+        ->assertSee('Control', escape: false)
+        ->assertSee('Derivación', escape: false);
+
+    $options = Livewire::test(CreateConsulta::class)
+        ->instance()
+        ->form
+        ->getComponent('motivo')
+        ->getOptions();
+
+    expect($options)->toBe([
+        'primera_consulta' => 'Primera consulta',
+        'control' => 'Control',
+        'derivacion' => 'Derivación',
+    ]);
+});
