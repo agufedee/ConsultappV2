@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Consultas;
 
+use App\Enums\PlanAlimentarioStatus;
 use App\Filament\Resources\Consultas\Pages\CreateConsulta;
 use App\Filament\Resources\Consultas\Pages\EditConsulta;
 use App\Filament\Resources\Consultas\Pages\ListConsultas;
@@ -14,10 +15,12 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\Resource;
@@ -141,6 +144,28 @@ class ConsultaResource extends Resource
                         Textarea::make('observaciones')
                             ->columnSpanFull(),
                         DatePicker::make('proximo_control'),
+                        Toggle::make('requiere_plan')
+                            ->label('Requiere plan alimentario')
+                            ->live(),
+                    ]),
+                Section::make('Plan alimentario')
+                    ->columns(2)
+                    ->visible(fn (Get $get): bool => (bool) $get('requiere_plan'))
+                    ->schema([
+                        Select::make('estado')
+                            ->options(PlanAlimentarioStatus::options())
+                            ->default(PlanAlimentarioStatus::Pending->value)
+                            ->live(),
+                        DatePicker::make('fecha_entrega')
+                            ->label('Fecha de entrega')
+                            ->visible(fn (Get $get): bool => $get('estado') === PlanAlimentarioStatus::Delivered->value)
+                            ->required(fn (Get $get): bool => $get('estado') === PlanAlimentarioStatus::Delivered->value),
+                        FileUpload::make('archivo_adjunto')
+                            ->label('Plan en PDF')
+                            ->columnSpanFull()
+                            ->disk('local_private')
+                            ->acceptedFileTypes(['application/pdf'])
+                            ->maxSize(5120),
                     ]),
             ]);
     }

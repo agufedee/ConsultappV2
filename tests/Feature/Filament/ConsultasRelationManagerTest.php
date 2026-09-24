@@ -1,10 +1,12 @@
 <?php
 
+use App\Enums\PlanAlimentarioStatus;
 use App\Filament\Resources\Consultas\ConsultaResource;
 use App\Filament\Resources\Pacientes\Pages\ViewPaciente;
 use App\Filament\Resources\Pacientes\RelationManagers\ConsultasRelationManager;
 use App\Models\Consulta;
 use App\Models\Paciente;
+use App\Models\PlanAlimentario;
 use App\Models\User;
 use Filament\Actions\CreateAction;
 use Filament\Actions\EditAction;
@@ -187,4 +189,24 @@ it('shows the consultas relation manager tab on the paciente view page', functio
     Livewire::test(ViewPaciente::class, ['record' => $paciente->getRouteKey()])
         ->assertOk()
         ->assertSee('Consultas');
+});
+
+it('applies the requires-plan control from the relation manager create action', function () {
+    $paciente = Paciente::factory()->create();
+
+    Livewire::test(ConsultasRelationManager::class, [
+        'ownerRecord' => $paciente,
+        'pageClass' => ViewPaciente::class,
+    ])
+        ->callAction(TestAction::make(CreateAction::class)->table(), [
+            'fecha' => '2026-09-21',
+            'motivo' => 'control',
+            'peso' => 82.40,
+            'altura' => 174.00,
+            'requiere_plan' => true,
+        ])
+        ->assertHasNoActionErrors();
+
+    expect(PlanAlimentario::count())->toBe(1);
+    expect(PlanAlimentario::query()->first()->estado)->toBe(PlanAlimentarioStatus::Pending);
 });
