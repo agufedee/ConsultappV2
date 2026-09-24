@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\Pacientes\RelationManagers;
 
 use App\Filament\Resources\Consultas\ConsultaResource;
+use App\Models\Consulta;
+use App\Services\PlanAlimentarioRequestService;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -19,7 +21,10 @@ class ConsultasRelationManager extends RelationManager
     {
         return $table
             ->headerActions([
-                CreateAction::make(),
+                CreateAction::make()
+                    ->after(function (Consulta $record, array $data): void {
+                        app(PlanAlimentarioRequestService::class)->sync($record, $data);
+                    }),
             ]);
     }
 

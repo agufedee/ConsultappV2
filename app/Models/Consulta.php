@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-#[Fillable(['paciente_id', 'fecha', 'motivo', 'peso', 'altura', 'imc', 'circunferencia_cintura', 'circunferencia_cadera', 'porcentaje_grasa', 'pliegues_cutaneos', 'observaciones', 'proximo_control'])]
+#[Fillable(['paciente_id', 'fecha', 'motivo', 'peso', 'altura', 'imc', 'circunferencia_cintura', 'circunferencia_cadera', 'porcentaje_grasa', 'pliegues_cutaneos', 'observaciones', 'proximo_control', 'requiere_plan'])]
 class Consulta extends Model
 {
     /** @use HasFactory<ConsultaFactory> */
@@ -22,6 +22,7 @@ class Consulta extends Model
             'imc' => 'float',
             'pliegues_cutaneos' => 'array',
             'proximo_control' => 'date',
+            'requiere_plan' => 'boolean',
         ];
     }
 
