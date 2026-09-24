@@ -1,13 +1,16 @@
 <?php
 
+use App\Enums\PlanAlimentarioStatus;
 use App\Filament\Resources\Consultas\ConsultaResource;
 use App\Filament\Resources\Consultas\Pages\CreateConsulta;
 use App\Filament\Resources\Consultas\Pages\EditConsulta;
 use App\Filament\Resources\Consultas\Pages\ListConsultas;
 use App\Models\Consulta;
 use App\Models\Paciente;
+use App\Models\PlanAlimentario;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -217,4 +220,173 @@ it('exposes the three motivo options with Spanish labels', function () {
         'control' => 'Control',
         'derivacion' => 'Derivación',
     ]);
+});
+
+it('creates a pending plan alimentario request when the requires-plan control is enabled', function () {
+    $paciente = Paciente::factory()->create();
+
+    Livewire::test(CreateConsulta::class)
+        ->fillForm([
+            'paciente_id' => $paciente->id,
+            'fecha' => '2026-09-21',
+            'motivo' => 'control',
+            'peso' => 82.40,
+            'altura' => 174.00,
+            'requiere_plan' => true,
+        ])
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    $plan = PlanAlimentario::query()->first();
+
+    expect($plan)->not->toBeNull();
+    expect($plan->estado)->toBe(PlanAlimentarioStatus::Pending);
+    expect($plan->fecha_entrega)->toBeNull();
+});
+
+it('leaves no request when the requires-plan control stays disabled', function () {
+    $paciente = Paciente::factory()->create();
+
+    Livewire::test(CreateConsulta::class)
+        ->fillForm([
+            'paciente_id' => $paciente->id,
+            'fecha' => '2026-09-21',
+            'motivo' => 'control',
+            'peso' => 82.40,
+            'altura' => 174.00,
+            'requiere_plan' => false,
+        ])
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    expect(PlanAlimentario::count())->toBe(0);
+});
+
+it('updates the existing request in place when editing a marked consultation', function () {
+    $consulta = Consulta::factory()->create(['requiere_plan' => true]);
+    $plan = PlanAlimentario::factory()->create(['consulta_id' => $consulta->id]);
+
+    Livewire::test(EditConsulta::class, ['record' => $consulta->getRouteKey()])
+        ->fillForm([
+            'fecha' => '2026-09-01',
+            'motivo' => 'control',
+            'peso' => 70.00,
+            'altura' => 170.00,
+            'requiere_plan' => true,
+            'estado' => 'delivered',
+            'fecha_entrega' => '2026-09-23',
+        ])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(PlanAlimentario::count())->toBe(1);
+    expect($plan->fresh()->estado)->toBe(PlanAlimentarioStatus::Delivered);
+    expect($plan->fresh()->fecha_entrega->format('Y-m-d'))->toBe('2026-09-23');
+});
+
+it('removes the request when the requires-plan control is disabled on edit', function () {
+    $consulta = Consulta::factory()->create(['requiere_plan' => true]);
+    PlanAlimentario::factory()->create(['consulta_id' => $consulta->id]);
+
+    Livewire::test(EditConsulta::class, ['record' => $consulta->getRouteKey()])
+        ->fillForm([
+            'fecha' => '2026-09-01',
+            'motivo' => 'control',
+            'peso' => 70.00,
+            'altura' => 170.00,
+            'requiere_plan' => false,
+        ])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(PlanAlimentario::count())->toBe(0);
+});
+
+it('requires a delivery date when the status is delivered', function () {
+    $consulta = Consulta::factory()->create(['requiere_plan' => true]);
+    PlanAlimentario::factory()->create(['consulta_id' => $consulta->id]);
+
+    Livewire::test(EditConsulta::class, ['record' => $consulta->getRouteKey()])
+        ->fillForm([
+            'fecha' => '2026-09-01',
+            'motivo' => 'control',
+            'peso' => 70.00,
+            'altura' => 170.00,
+            'requiere_plan' => true,
+            'estado' => 'delivered',
+            'fecha_entrega' => null,
+        ])
+        ->call('save')
+        ->assertHasFormErrors(['fecha_entrega' => 'required']);
+
+    expect($consulta->fresh()->planAlimentario->estado)->toBe(PlanAlimentarioStatus::Pending);
+});
+
+it('clears the delivery date when the status leaves delivered', function () {
+    $consulta = Consulta::factory()->create(['requiere_plan' => true]);
+    PlanAlimentario::factory()->create([
+        'consulta_id' => $consulta->id,
+        'estado' => PlanAlimentarioStatus::Delivered,
+        'fecha_entrega' => '2026-09-23',
+    ]);
+
+    Livewire::test(EditConsulta::class, ['record' => $consulta->getRouteKey()])
+        ->fillForm([
+            'fecha' => '2026-09-01',
+            'motivo' => 'control',
+            'peso' => 70.00,
+            'altura' => 170.00,
+            'requiere_plan' => true,
+            'estado' => 'payment_pending',
+            'fecha_entrega' => null,
+        ])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    $plan = $consulta->fresh()->planAlimentario;
+
+    expect($plan->estado)->toBe(PlanAlimentarioStatus::PaymentPending);
+    expect($plan->fecha_entrega)->toBeNull();
+});
+
+it('rejects a non-pdf attachment before persisting it', function () {
+    $paciente = Paciente::factory()->create();
+
+    Livewire::test(CreateConsulta::class)
+        ->fillForm([
+            'paciente_id' => $paciente->id,
+            'fecha' => '2026-09-21',
+            'motivo' => 'control',
+            'peso' => 82.40,
+            'altura' => 174.00,
+            'requiere_plan' => true,
+        ])
+        ->upload('data.archivo_adjunto', [UploadedFile::fake()->create('plan.txt', 100, 'text/plain')])
+        ->call('create')
+        ->assertHasFormErrors(['archivo_adjunto']);
+
+    expect(Consulta::count())->toBe(0);
+    expect(PlanAlimentario::count())->toBe(0);
+});
+
+it('rejects an oversized attachment without replacing the existing one', function () {
+    $consulta = Consulta::factory()->create(['requiere_plan' => true]);
+    $plan = PlanAlimentario::factory()->create([
+        'consulta_id' => $consulta->id,
+        'archivo_adjunto' => 'existing.pdf',
+    ]);
+
+    Livewire::test(EditConsulta::class, ['record' => $consulta->getRouteKey()])
+        ->fillForm([
+            'fecha' => '2026-09-01',
+            'motivo' => 'control',
+            'peso' => 70.00,
+            'altura' => 170.00,
+            'requiere_plan' => true,
+        ])
+        ->upload('data.archivo_adjunto', [UploadedFile::fake()->create('plan.pdf', 6000, 'application/pdf')])
+        ->call('save')
+        ->assertHasFormErrors(['archivo_adjunto']);
+
+    expect($plan->fresh()->archivo_adjunto)->toBe('existing.pdf');
 });
