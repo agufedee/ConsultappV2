@@ -80,7 +80,7 @@ it('keeps every consulta column and the imc value when the widener is applied', 
     );
 });
 
-it('rolls back only the widener on a single step and keeps consultas intact', function () use ($assertImcWidth) {
+it('rolls back the widener on a single focused step and keeps consultas intact', function () use ($assertImcWidth) {
     $consulta = Consulta::factory()->create([
         'fecha' => '2026-09-01',
         'motivo' => 'control',
@@ -91,7 +91,13 @@ it('rolls back only the widener on a single step and keeps consultas intact', fu
 
     expect(DB::table('migrations')->where('migration', 'like', '%widen_imc_on_consultas')->exists())->toBeTrue();
 
-    Artisan::call('migrate:rollback', ['--step' => 1]);
+    // The widener is no longer the newest migration (the dietary-plan lifecycle
+    // migration runs after it), so step back over every migration newer than it.
+    $migrations = DB::table('migrations')->orderBy('id')->pluck('migration');
+    $widenerIndex = $migrations->search(fn (string $migration): bool => str_contains($migration, 'widen_imc_on_consultas'));
+    $steps = $migrations->count() - $widenerIndex;
+
+    Artisan::call('migrate:rollback', ['--step' => $steps]);
 
     expect(DB::table('migrations')->where('migration', 'like', '%widen_imc_on_consultas')->exists())->toBeFalse();
     expect(Schema::hasTable('consultas'))->toBeTrue();

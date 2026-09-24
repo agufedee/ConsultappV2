@@ -49,3 +49,21 @@ test('imc is stored as float', function () {
     expect(is_float((float) $consulta->imc))->toBeTrue();
     expect($consulta->imc)->toBe(24.69);
 });
+
+test('factory defaults requiere_plan to false', function () {
+    $consulta = Consulta::factory()->create();
+
+    expect($consulta->requiere_plan)->toBeFalse();
+});
+
+test('requiere_plan is persisted as a boolean', function () {
+    $consulta = Consulta::factory()->create(['requiere_plan' => true]);
+
+    expect($consulta->fresh()->requiere_plan)->toBeTrue();
+});
+
+test('an unmarked consulta has no plan alimentario request', function () {
+    $consulta = Consulta::factory()->create(['requiere_plan' => false]);
+
+    expect($consulta->planAlimentario)->toBeNull();
+});
