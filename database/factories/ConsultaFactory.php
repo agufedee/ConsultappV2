@@ -26,7 +26,10 @@ class ConsultaFactory extends Factory
             'imc' => round($peso / ($altura / 100) ** 2, 2),
             'circunferencia_cintura' => fake()->optional(0.6)->randomFloat(2, 60, 120),
             'circunferencia_cadera' => fake()->optional(0.6)->randomFloat(2, 70, 130),
-            'porcentaje_grasa' => fake()->optional(0.5)->randomFloat(2, 10, 45),
+            'masa_grasa' => fake()->optional(0.5)->randomFloat(2, 10, 45),
+            'masa_grasa_unidad' => '%',
+            'masa_muscular' => fake()->optional(0.5)->randomFloat(2, 20, 60),
+            'masa_muscular_unidad' => '%',
             'pliegues_cutaneos' => fake()->optional(0.4)->passthrough([
                 ['pliegue' => 'subescapular', 'mm' => rand(10, 40)],
                 ['pliegue' => 'triceps', 'mm' => rand(8, 30)],

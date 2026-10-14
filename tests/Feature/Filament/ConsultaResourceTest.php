@@ -65,6 +65,63 @@ it('computes and persists the imc on create', function () {
     ]);
 });
 
+it('persists body composition values with their selected units on create', function () {
+    $paciente = Paciente::factory()->create();
+
+    Livewire::test(CreateConsulta::class)
+        ->fillForm([
+            'paciente_id' => $paciente->id,
+            'fecha' => '2026-09-21',
+            'motivo' => 'control',
+            'peso' => 82.40,
+            'altura' => 174.00,
+            'masa_grasa' => 18.50,
+            'masa_grasa_unidad' => 'kg',
+            'masa_muscular' => 42.00,
+            'masa_muscular_unidad' => '%',
+        ])
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    $this->assertDatabaseHas('consultas', [
+        'masa_grasa' => 18.50,
+        'masa_grasa_unidad' => 'kg',
+        'masa_muscular' => 42.00,
+        'masa_muscular_unidad' => '%',
+    ]);
+});
+
+it('updates body composition values and units independently on edit', function () {
+    $consulta = Consulta::factory()->create([
+        'masa_grasa' => 20.00,
+        'masa_grasa_unidad' => '%',
+        'masa_muscular' => 35.00,
+        'masa_muscular_unidad' => 'kg',
+    ]);
+
+    Livewire::test(EditConsulta::class, ['record' => $consulta->getRouteKey()])
+        ->fillForm([
+            'fecha' => '2026-09-01',
+            'motivo' => 'control',
+            'peso' => 70.00,
+            'altura' => 170.00,
+            'masa_grasa' => 14.00,
+            'masa_grasa_unidad' => 'kg',
+            'masa_muscular' => 52.00,
+            'masa_muscular_unidad' => '%',
+        ])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    $this->assertDatabaseHas('consultas', [
+        'id' => $consulta->id,
+        'masa_grasa' => 14.00,
+        'masa_grasa_unidad' => 'kg',
+        'masa_muscular' => 52.00,
+        'masa_muscular_unidad' => '%',
+    ]);
+});
+
 it('persists an extreme imc without a database error', function () {
     $paciente = Paciente::factory()->create();
 
