@@ -92,7 +92,10 @@ it('rolls back only the lifecycle schema and preserves existing data', function 
     $consulta = Consulta::factory()->create();
     PlanAlimentario::factory()->create(['consulta_id' => $consulta->id]);
 
-    Artisan::call('migrate:rollback', ['--step' => 1]);
+    $migrations = DB::table('migrations')->orderBy('id')->pluck('migration');
+    $lifecycleIndex = $migrations->search(fn (string $migration): bool => str_contains($migration, 'add_dietary_plan_request_lifecycle'));
+
+    Artisan::call('migrate:rollback', ['--step' => $migrations->count() - $lifecycleIndex]);
 
     expect(DB::table('migrations')->where('migration', 'like', '%add_dietary_plan_request_lifecycle')->exists())
         ->toBeFalse();
@@ -107,7 +110,10 @@ it('rolls back only the lifecycle schema and preserves existing data', function 
 it('aborts with an actionable duplicate report before enforcing the unique index', function () {
     $consulta = Consulta::factory()->create();
 
-    Artisan::call('migrate:rollback', ['--step' => 1]);
+    $migrations = DB::table('migrations')->orderBy('id')->pluck('migration');
+    $lifecycleIndex = $migrations->search(fn (string $migration): bool => str_contains($migration, 'add_dietary_plan_request_lifecycle'));
+
+    Artisan::call('migrate:rollback', ['--step' => $migrations->count() - $lifecycleIndex]);
 
     insertRawPlan(['consulta_id' => $consulta->id]);
     insertRawPlan(['consulta_id' => $consulta->id]);

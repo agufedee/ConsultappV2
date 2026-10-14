@@ -123,9 +123,26 @@ class ConsultaResource extends Resource
                         TextInput::make('circunferencia_cadera')
                             ->numeric()
                             ->suffix('cm'),
-                        TextInput::make('porcentaje_grasa')
+                        TextInput::make('masa_grasa')
                             ->numeric()
-                            ->suffix('%'),
+                            ->suffix(fn (Get $get): string => (string) ($get('masa_grasa_unidad') ?? '%')),
+                        Select::make('masa_grasa_unidad')
+                            ->options([
+                                '%' => 'Porcentaje (%)',
+                                'kg' => 'Kilogramos (kg)',
+                            ])
+                            ->default('%')
+                            ->required(),
+                        TextInput::make('masa_muscular')
+                            ->numeric()
+                            ->suffix(fn (Get $get): string => (string) ($get('masa_muscular_unidad') ?? '%')),
+                        Select::make('masa_muscular_unidad')
+                            ->options([
+                                '%' => 'Porcentaje (%)',
+                                'kg' => 'Kilogramos (kg)',
+                            ])
+                            ->default('%')
+                            ->required(),
                         Repeater::make('pliegues_cutaneos')
                             ->defaultItems(0)
                             ->schema([
@@ -192,7 +209,11 @@ class ConsultaResource extends Resource
                             ->placeholder('—'),
                         TextEntry::make('circunferencia_cadera')
                             ->placeholder('—'),
-                        TextEntry::make('porcentaje_grasa')
+                        TextEntry::make('masa_grasa')
+                            ->suffix(fn (Consulta $record): string => ' '.($record->masa_grasa_unidad ?? '%'))
+                            ->placeholder('—'),
+                        TextEntry::make('masa_muscular')
+                            ->suffix(fn (Consulta $record): string => ' '.($record->masa_muscular_unidad ?? '%'))
                             ->placeholder('—'),
                         TextEntry::make('pliegues_cutaneos')
                             ->placeholder('—'),

@@ -85,6 +85,34 @@ it('creates a consulta for the owner from the header create action', function ()
     ]);
 });
 
+it('persists body composition values with their selected units from the relation manager', function () {
+    $paciente = Paciente::factory()->create();
+
+    Livewire::test(ConsultasRelationManager::class, [
+        'ownerRecord' => $paciente,
+        'pageClass' => ViewPaciente::class,
+    ])
+        ->callAction(TestAction::make(CreateAction::class)->table(), [
+            'fecha' => '2026-09-21',
+            'motivo' => 'control',
+            'peso' => 82.40,
+            'altura' => 174.00,
+            'masa_grasa' => 18.50,
+            'masa_grasa_unidad' => 'kg',
+            'masa_muscular' => 42.00,
+            'masa_muscular_unidad' => '%',
+        ])
+        ->assertHasNoActionErrors();
+
+    $this->assertDatabaseHas('consultas', [
+        'paciente_id' => $paciente->id,
+        'masa_grasa' => 18.50,
+        'masa_grasa_unidad' => 'kg',
+        'masa_muscular' => 42.00,
+        'masa_muscular_unidad' => '%',
+    ]);
+});
+
 it('persists an extreme imc through the relation manager create action', function () {
     $paciente = Paciente::factory()->create();
 
