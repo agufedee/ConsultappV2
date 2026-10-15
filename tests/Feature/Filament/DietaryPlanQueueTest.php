@@ -134,3 +134,31 @@ it('provides no manual deletion action', function () {
     Livewire::test(DietaryPlanQueue::class)
         ->assertTableActionDoesNotExist(DeleteAction::class);
 });
+
+it('rejects delivering with a blank date and leaves the request unchanged', function () {
+    $plan = PlanAlimentario::factory()->create();
+
+    Livewire::test(DietaryPlanQueue::class)
+        ->callTableAction('deliver', $plan, ['fecha_entrega' => '   '])
+        ->assertHasTableActionErrors(['fecha_entrega' => 'required']);
+
+    expect($plan->fresh()->estado)->toBe(PlanAlimentarioStatus::Pending);
+    expect($plan->fresh()->fecha_entrega)->toBeNull();
+});
+
+it('keeps delivered and payment pending requests out of the pending projection after queue transitions', function () {
+    $deliverable = PlanAlimentario::factory()->create();
+    $deferred = PlanAlimentario::factory()->create();
+    $untouched = PlanAlimentario::factory()->create();
+
+    $queue = Livewire::test(DietaryPlanQueue::class);
+    $queue->callTableAction('deliver', $deliverable, ['fecha_entrega' => '2026-09-23'])
+        ->assertHasNoTableActionErrors();
+    $queue->callTableAction('markPaymentPending', $deferred)
+        ->assertHasNoTableActionErrors();
+
+    expect(PlanAlimentario::query()->pending()->pluck('id')->all())
+        ->toBe([$untouched->id]);
+
+    $queue->assertCanSeeTableRecords([$deliverable, $deferred, $untouched]);
+});
