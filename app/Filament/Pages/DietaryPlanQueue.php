@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Enums\PlanAlimentarioStatus;
 use App\Filament\Resources\Consultas\ConsultaResource;
 use App\Models\PlanAlimentario;
+use App\Services\PlanAlimentarioLifecycleService;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
@@ -38,8 +39,7 @@ class DietaryPlanQueue extends Page implements HasSchemas, HasTable
             ->query(
                 PlanAlimentario::query()
                     ->with(['consulta.paciente'])
-                    ->orderBy('created_at')
-                    ->orderBy('id')
+                    ->orderedForQueue()
             )
             ->columns([
                 TextColumn::make('consulta.paciente.nombre_completo')
@@ -69,16 +69,13 @@ class DietaryPlanQueue extends Page implements HasSchemas, HasTable
                             ->required(),
                     ])
                     ->action(function (array $data, PlanAlimentario $record): void {
-                        $record->estado = PlanAlimentarioStatus::Delivered;
-                        $record->fecha_entrega = $data['fecha_entrega'];
-                        $record->save();
+                        app(PlanAlimentarioLifecycleService::class)->deliver($record, $data['fecha_entrega']);
                     }),
                 Action::make('markPaymentPending')
                     ->label('Falta de pago')
                     ->icon(Heroicon::OutlinedCurrencyDollar)
                     ->action(function (PlanAlimentario $record): void {
-                        $record->estado = PlanAlimentarioStatus::PaymentPending;
-                        $record->save();
+                        app(PlanAlimentarioLifecycleService::class)->markPaymentPending($record);
                     }),
                 Action::make('download')
                     ->label('Descargar')

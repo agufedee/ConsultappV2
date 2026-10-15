@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\PlanAlimentarioStatus;
 use Database\Factories\PlanAlimentarioFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -45,5 +46,38 @@ class PlanAlimentario extends Model
     public function consulta(): BelongsTo
     {
         return $this->belongsTo(Consulta::class);
+    }
+
+    /**
+     * Limit the query to requests still pending delivery.
+     *
+     * @param  Builder<PlanAlimentario>  $query
+     * @return Builder<PlanAlimentario>
+     */
+    public function scopePending(Builder $query): Builder
+    {
+        return $query->where('estado', PlanAlimentarioStatus::Pending);
+    }
+
+    /**
+     * Limit the query to requests awaiting payment.
+     *
+     * @param  Builder<PlanAlimentario>  $query
+     * @return Builder<PlanAlimentario>
+     */
+    public function scopePaymentPending(Builder $query): Builder
+    {
+        return $query->where('estado', PlanAlimentarioStatus::PaymentPending);
+    }
+
+    /**
+     * Apply the deterministic operational queue ordering.
+     *
+     * @param  Builder<PlanAlimentario>  $query
+     * @return Builder<PlanAlimentario>
+     */
+    public function scopeOrderedForQueue(Builder $query): Builder
+    {
+        return $query->orderBy('created_at')->orderBy('id');
     }
 }
