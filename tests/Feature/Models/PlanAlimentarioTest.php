@@ -91,3 +91,31 @@ test('a second active request for the same consulta is rejected', function () {
     expect(fn () => PlanAlimentario::factory()->create(['consulta_id' => $consulta->id]))
         ->toThrow(QueryException::class);
 });
+
+test('pending scope returns only pending requests', function () {
+    $pending = PlanAlimentario::factory()->create();
+    PlanAlimentario::factory()->delivered()->create();
+    PlanAlimentario::factory()->create(['estado' => PlanAlimentarioStatus::PaymentPending]);
+
+    expect(PlanAlimentario::query()->pending()->pluck('id')->all())->toBe([$pending->id]);
+});
+
+test('payment pending scope returns only payment pending requests', function () {
+    $paymentPending = PlanAlimentario::factory()->create([
+        'estado' => PlanAlimentarioStatus::PaymentPending,
+    ]);
+    PlanAlimentario::factory()->create();
+    PlanAlimentario::factory()->delivered()->create();
+
+    expect(PlanAlimentario::query()->paymentPending()->pluck('id')->all())->toBe([$paymentPending->id]);
+});
+
+test('ordered for queue scope orders by creation time then identifier ascending', function () {
+    $older = PlanAlimentario::factory()->create(['created_at' => '2026-09-01 10:00:00']);
+    $tieFirst = PlanAlimentario::factory()->create(['created_at' => '2026-09-02 10:00:00']);
+    $tieSecond = PlanAlimentario::factory()->create(['created_at' => '2026-09-02 10:00:00']);
+
+    $ids = PlanAlimentario::query()->orderedForQueue()->pluck('id')->all();
+
+    expect($ids)->toBe([$older->id, $tieFirst->id, $tieSecond->id]);
+});
