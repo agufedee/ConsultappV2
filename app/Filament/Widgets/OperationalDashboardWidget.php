@@ -71,7 +71,6 @@ class OperationalDashboardWidget extends TableWidget
     protected function getViewData(): array
     {
         return [
-            'paymentPendingCount' => PlanAlimentario::query()->paymentPending()->count(),
             'newConsultationUrl' => ConsultaResource::getUrl('create', panel: 'consultapp'),
             'newPatientUrl' => PacienteResource::getUrl('create', panel: 'consultapp'),
             'patientSearchUrl' => PacienteResource::getUrl('index', panel: 'consultapp'),

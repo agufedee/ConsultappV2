@@ -46,16 +46,6 @@ The dashboard SHALL show at most the 10 oldest `pending` `PlanAlimentario` recor
 - WHEN the dashboard renders
 - THEN a stable empty state is shown
 
-### Requirement: Separate Payment-Pending Count
-
-The dashboard SHALL show a separate count containing only `payment_pending` `PlanAlimentario` records. This count MUST NOT be merged into or treated as the pending-plan list.
-
-#### Scenario: Statuses remain separated
-
-- GIVEN two payment-pending plans and one pending plan
-- WHEN the dashboard renders
-- THEN the count is 2 and the pending list contains only the pending plan
-
 ### Requirement: Navigation Shortcuts and Queue Link
 
 The dashboard SHALL provide shortcuts for new consultation, new patient, and the existing searchable patient list. It SHALL provide a link from the pending-plan area to the full authenticated dietary-plan queue.

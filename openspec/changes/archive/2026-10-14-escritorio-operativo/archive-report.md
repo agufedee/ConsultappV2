@@ -111,3 +111,16 @@ Per the Final-State Authority hierarchy, the orchestrator's launch prompt ("All 
 No facts changed after the apply/verify snapshots — no post-verify fixes, no later commits, no resolved blockers. Commit/PR/evidence refs are **N/A** (uncommitted on `develop`, no PRs). The verify-report is the terminal verification record.
 
 Live attempt-gate outcome: objective `sdd-archive` / `archive-with-verify-report`, outcome **passed**, harness disposition **reused**.
+
+## Post-Archive Correction — Payment-Pending Count Removed
+
+After archive, the maintainer judged the header "Falta de pago" counter not useful and removed it from the dashboard view by hand. A follow-up correction aligned the living system with that decision:
+
+- **Requirement removed** from the main spec: `openspec/specs/operational-dashboard/spec.md` no longer carries `### Requirement: Separate Payment-Pending Count`. The dashboard requirement count is now 7 (was 8).
+- **Dead data path removed**: `OperationalDashboardWidget::getViewData()` no longer computes `paymentPendingCount`, dropping one `COUNT` query on every dashboard render.
+- **Tests realigned**: the widget test now asserts only the surviving invariant — `payment_pending` and `delivered` records never appear in the pending list — plus the native-markup assertion (`fi-btn`).
+- **Preserved**: the separation guarantee (line 28, `payment_pending` MUST NOT appear in the pending list) still holds and is still tested; the `payment_pending` status, its `PlanAlimentario::scopePaymentPending()` query, and the dietary-plan queue "Falta de pago" label are unchanged.
+
+This is a **destructive delta**, recorded per `openspec/config.yaml` (`archive: Warn before merging destructive deltas`). The archived delta specs and verify-report remain the historical snapshot of what was verified at archive time; this section is the record of the post-archive removal.
+
+Verification after the correction: `php artisan test --compact` → 159 passed, 560 assertions, 6 pre-existing warnings; Pint clean.

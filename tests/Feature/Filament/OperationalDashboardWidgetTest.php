@@ -70,17 +70,15 @@ it('renders patient and consultation context without lazy loading', function () 
     }
 });
 
-it('counts payment pending separately and excludes it and delivered plans', function () {
+it('excludes payment pending and delivered plans from the pending list', function () {
     $pending = PlanAlimentario::factory()->create();
-    PlanAlimentario::factory()->create(['estado' => PlanAlimentarioStatus::PaymentPending]);
-    $other = PlanAlimentario::factory()->create(['estado' => PlanAlimentarioStatus::PaymentPending]);
+    $paymentPending = PlanAlimentario::factory()->create(['estado' => PlanAlimentarioStatus::PaymentPending]);
     $delivered = PlanAlimentario::factory()->delivered()->create();
 
     Livewire::test(OperationalDashboardWidget::class)
         ->assertOk()
-        ->assertSee('Falta de pago: 2')
         ->assertCanSeeTableRecords([$pending])
-        ->assertCanNotSeeTableRecords([$other, $delivered]);
+        ->assertCanNotSeeTableRecords([$paymentPending, $delivered]);
 });
 
 it('shows an empty state and keeps navigation when there are no pending plans', function () {
@@ -100,6 +98,12 @@ it('renders shortcuts and queue link with panel URLs', function () {
         ->assertSee(PacienteResource::getUrl('create', panel: 'consultapp'))
         ->assertSee(PacienteResource::getUrl('index', panel: 'consultapp'))
         ->assertSee(route('filament.consultapp.pages.planes-alimentarios', [], false));
+});
+
+it('renders the shortcuts through Filament components, not raw HTML', function () {
+    Livewire::test(OperationalDashboardWidget::class)
+        ->assertOk()
+        ->assertSeeHtml('fi-btn');
 });
 
 it('rejects delivering without a date and leaves the plan unchanged', function () {
